@@ -2,6 +2,7 @@ package ru.netology.web;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.selector.WithText;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -24,11 +25,9 @@ class DeliveryCardTest {
     }
 
     @Test
-    void  ShouldSendForm() {
-        Configuration.holdBrowserOpen = true;
+    void  shouldSendForm() {
         open("http://localhost:9999");
         $("input[placeholder='Город']").setValue("Москва");
-        $("span[class='menu-item__control']").click();
         $("input[placeholder='Дата встречи']").click();
         $("input[placeholder='Дата встречи']").sendKeys(Keys.chord(Keys.SHIFT,Keys.HOME),Keys.BACK_SPACE);
         $("input[placeholder='Дата встречи']").setValue(deliveryDate);
@@ -39,6 +38,14 @@ class DeliveryCardTest {
         $(".notification__title").shouldBe(visible, Duration.ofSeconds(16)).shouldHave(exactText("Успешно!"));
         $(".notification__content").shouldBe(visible, Duration.ofSeconds(16))
                 .shouldHave(exactText("Встреча успешно забронирована на " + deliveryDate));
+    }
+
+    @Test
+    void shouldWorkDropListAndDatePicker() {
+        Configuration.holdBrowserOpen = true;
+        open("http://localhost:9999");
+        $("input[placeholder='Город']").setValue("Мо");
+        $(byText("Москва")).click();
     }
 }
 
