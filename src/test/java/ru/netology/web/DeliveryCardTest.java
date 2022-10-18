@@ -32,6 +32,13 @@ class DeliveryCardTest {
         $("input[placeholder='Дата встречи']").click();
         $("input[placeholder='Дата встречи']").sendKeys(Keys.chord(Keys.SHIFT,Keys.HOME),Keys.BACK_SPACE);
         $("input[placeholder='Дата встречи']").setValue(deliveryDate);
+        $("input[name='name']").setValue("Петр Корн-Фарен");
+        $("input[name='phone']").setValue("+79978532542");
+        $("[data-test-id='agreement'] span").click();
+        $("span[class='button__text']").click();
+        $(".notification__title").shouldBe(visible, Duration.ofSeconds(16)).shouldHave(exactText("Успешно!"));
+        $(".notification__content").shouldBe(visible, Duration.ofSeconds(16))
+                .shouldHave(exactText("Встреча успешно забронирована на " + deliveryDate));
     }
 }
 
