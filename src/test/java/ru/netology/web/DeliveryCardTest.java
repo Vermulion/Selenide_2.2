@@ -2,10 +2,12 @@ package ru.netology.web;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.selector.WithText;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.conditions.ExactText;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -22,6 +24,18 @@ class DeliveryCardTest {
 
     private String generateDate(int day) {
         return LocalDate.now().plusDays(day).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+    }
+
+    private String today = generateDay();
+
+    private String generateDay() {
+        return LocalDate.now().format(DateTimeFormatter.ofPattern("dd"));
+    }
+
+    private String nextWeek = generateNextWeekday(7);
+
+    private String generateNextWeekday(int day) {
+        return LocalDate.now().plusDays(day).format(DateTimeFormatter.ofPattern("dd"));
     }
 
     @Test
@@ -46,6 +60,30 @@ class DeliveryCardTest {
         open("http://localhost:9999");
         $("input[placeholder='Город']").setValue("Мо");
         $(byText("Москва")).click();
+        $("button[role='button']").click();
+        //Calendar
+        SelenideElement calendar = $(".calendar__layout");
+        ElementsCollection weekRows = $$("calendar__row");
+//        SelenideElement todayDay = calendar.$$("[role='gridcell']").find(exactText(today));
+
+
+
+        //This are the columns of the from date picker table
+        SelenideElement nextMonth = $(".calendar__arrow calendar__arrow_direction_right");
+        ElementsCollection columns = $$(By.tagName("td"));
+        SelenideElement todayDay = columns.find(exactText(today));
+        SelenideElement setDay = columns.find(exactText(nextWeek));
+
+        ElementsCollection previousDays = $$("td[class*='off']");
+        SelenideElement previousDay = previousDays.find(exactText(nextWeek));
+
+            for (SelenideElement selenideElement : columns) {
+                if (selenideElement.equals(previousDay)){
+                    selenideElement.click();
+                }
+            }
+
+
     }
 }
 
