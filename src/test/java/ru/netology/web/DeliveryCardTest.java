@@ -4,6 +4,7 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.conditions.ExactText;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -19,8 +20,10 @@ import static com.codeborne.selenide.Selenide.*;
 import static org.openqa.selenium.remote.tracing.EventAttribute.setValue;
 
 class DeliveryCardTest {
-
+    //Calendar elements
+    SelenideElement nextMonth = $x("//div[@data-step='1']");
     private String deliveryDate = generateDate(3);
+    private String deliveryDate1 = generateDate(14);
 
     private String generateDate(int day) {
         return LocalDate.now().plusDays(day).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
@@ -38,12 +41,16 @@ class DeliveryCardTest {
         return LocalDate.now().plusDays(day).format(DateTimeFormatter.ofPattern("dd"));
     }
 
-    @Test
-    void  shouldSendForm() {
+    @BeforeEach
+    void setUp() {
         open("http://localhost:9999");
+    }
+
+    @Test
+    void shouldSendForm() {
         $("input[placeholder='Город']").setValue("Москва");
         $("input[placeholder='Дата встречи']").click();
-        $("input[placeholder='Дата встречи']").sendKeys(Keys.chord(Keys.SHIFT,Keys.HOME),Keys.BACK_SPACE);
+        $("input[placeholder='Дата встречи']").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
         $("input[placeholder='Дата встречи']").setValue(deliveryDate);
         $("input[name='name']").setValue("Петр Корн-Фарен");
         $("input[name='phone']").setValue("+79978532542");
@@ -57,54 +64,29 @@ class DeliveryCardTest {
     @Test
     void shouldWorkDropListAndDatePicker() {
         Configuration.holdBrowserOpen = true;
-        open("http://localhost:9999");
-        $("input[placeholder='Город']").setValue("Мо");
+        $x(".//input[@placeholder='Город']").val("Мо");
         $(byText("Москва")).click();
-        $("button[role='button']").click();
+        $x(".//button[@role='button']").click();
         //Calendar
-        SelenideElement calendar = $(".calendar__layout");
-        ElementsCollection weekRows = $$("calendar__row");
-//        SelenideElement todayDay = calendar.$$("[role='gridcell']").find(exactText(today));
-
-
-
-        //This are the columns of the from date picker table
-        SelenideElement nextMonth = $(".calendar__arrow calendar__arrow_direction_right");
-        ElementsCollection columns = $$(By.tagName("td"));
-        SelenideElement todayDay = columns.find(exactText(today));
-        SelenideElement setDay = columns.find(exactText(nextWeek));
-
-        ElementsCollection previousDays = $$("td[class*='off']");
-        SelenideElement previousDay = previousDays.find(exactText(nextWeek));
-
-            for (SelenideElement selenideElement : columns) {
-                if (selenideElement.equals(previousDay)){
-                    selenideElement.click();
-                }
-            }
-
-
+        ElementsCollection dates = $$x("//td[@data-day]");
+        int days = 14 - 3; //two weeks minus three days which are the minimum for delivery
+        int remains;  //(optional) remained days those will have been subtracted from the next month
+        int currentWeek = dates.size(); //amount of remained days this month
+        if (currentWeek < days) { //in case of dates.size is less than 11
+            remains = days - currentWeek;
+            nextMonth.click();
+            dates.get(remains).click();
+        } else {
+            dates.get(days).click();
+        }
+        $x(".//input[@placeholder='Дата встречи']").val(deliveryDate1);
+        $x(".//span[@data-test-id='name']//child::input").setValue("Петр Прокофьев");
+        $x(".//span[@data-test-id='phone']//child::input").setValue("+79978532542");
+        $("[data-test-id='agreement'] span").click();
+        $x(".//span[contains(text(), 'Забронировать')]//ancestor::button").click();
+        $(".notification__title").shouldBe(visible, Duration.ofSeconds(16)).shouldHave(exactText("Успешно!"));
+        $(".notification__content").shouldBe(visible, Duration.ofSeconds(16))
+                .shouldHave(exactText("Встреча успешно забронирована на " + deliveryDate1));
     }
 }
 
-//    @Test
-//    void shouldRegisterByAccountNumberDOMModification() {
-//        open("http://localhost:9999");
-//        $$(".tab-item").find(exactText("По номеру счёта")).click();
-//        $("[name='number']").setValue("4055 0100 0123 4613 8564");
-//        $("[name='phone']").setValue("+792000000000");
-//        $$("button").find(exactText("Продолжить")).click();
-//        $(withText("Успешная авторизация")).shouldBe(visible, Duration.ofMillis(5000));
-//        $(byText("Личный кабинет")).shouldBe(visible, Duration.ofMillis(5000));
-//    }
-//
-//    @Test
-//    void shouldRegisterByAccountNumberVisibilityChange() {
-//        open("http://localhost:9999");
-//        $$(".tab-item").find(exactText("По номеру счёта")).click();
-//        $$("[name='number']").last().setValue("4055 0100 0123 4613 8564");
-//        $$("[name='phone']").last().setValue("+792000000000");
-//        $$("button").find(exactText("Продолжить")).click();
-//        $(withText("Успешная авторизация")).shouldBe(visible, Duration.ofSeconds(5));
-//        $(byText("Личный кабинет")).shouldBe(visible, Duration.ofSeconds(5));
-//    }
